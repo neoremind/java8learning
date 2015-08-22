@@ -1,5 +1,8 @@
 package net.neoremind.java8learning;
 
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.averagingInt;
+import static java.util.stream.Collectors.maxBy;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static net.neoremind.java8learning.AlbumBuilder.getAlbums;
@@ -9,7 +12,9 @@ import java.util.Comparator;
 import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -20,6 +25,10 @@ import net.neoremind.java8learning.bo.Album;
 import net.neoremind.java8learning.bo.Track;
 
 /**
+ * Java8 lambda simple tests
+ * <p>
+ * TODO http://winterbe.com/posts/2014/07/31/java8-stream-tutorial-examples/
+ *
  * @author zhangxu
  */
 public class LamdaTest {
@@ -33,7 +42,7 @@ public class LamdaTest {
     }
 
     @Test
-    public void testMap1() {
+    public void testSimpleMap() {
         List<String> res = Stream.of("abc", "xyz", "hh").map(str -> str.toUpperCase()).collect(toList());
         System.out.println(res);
 
@@ -44,7 +53,7 @@ public class LamdaTest {
     }
 
     @Test
-    public void testMap() {
+    public void testMapAndJoiningCollector() {
         // Convert String to Uppercase and join them using coma
         List<String> G7 = Arrays.asList("USA", "Japan", "France", "Germany",
                 "Italy", "U.K.", "Canada");
@@ -56,6 +65,21 @@ public class LamdaTest {
         G7Countries = G7.stream().map(String::toLowerCase)
                 .collect(Collectors.joining(", "));
         System.out.println(G7Countries);
+    }
+
+    @Test
+    public void testMapForEach() {
+        // applying 12% VAT on each purchase
+        // Without lambda expressions:
+        List<Integer> costBeforeTax = Arrays.asList(100, 200, 300, 400, 500);
+        for (Integer cost : costBeforeTax) {
+            double price = cost + .12 * cost;
+            System.out.println(price);
+        }
+
+        // With Lambda expression:
+        costBeforeTax.stream().map((cost) -> cost + .12 * cost)
+                .forEach(System.out::println);
     }
 
     @Test
@@ -71,7 +95,31 @@ public class LamdaTest {
     }
 
     @Test
-    public void testThread() {
+    public void testFilter() {
+        List<String> features = Arrays.asList("Lambdas", "Default Method", "Stream API",
+                "Date and Time API", "X");
+
+        // Create a List with String more than 2 characters
+        List<String> filtered = features.stream().filter(x -> x.length() > 2)
+                .collect(Collectors.toList());
+        System.out.printf("Original List : %s, filtered list : %s %n",
+                features, filtered);
+    }
+
+    @Test
+    public void testSort() {
+        List<String> features = Arrays.asList("Lambdas", "Default Method", "Stream API",
+                "Date and Time API");
+        List<String> res = features.stream().sorted().collect(toList());
+        System.out.println(res);
+
+        Comparator<String> comp = (first, second) -> Integer.compare(first.length(), second.length());
+        res = features.stream().sorted(comp).collect(toList());
+        System.out.println(res);
+    }
+
+    @Test
+    public void testLambdaStyleNewThread() {
         //Before Java 8:
         new Thread(new Runnable() {
             @Override
@@ -100,28 +148,13 @@ public class LamdaTest {
     }
 
     @Test
-    public void testMapReduce1() {
+    public void testMapReduce() {
         int count = Stream.of(1, 2, 3).reduce(10, (acc, element) -> acc + element);
         System.out.println(count);
     }
 
     @Test
-    public void testMapForEach() {
-        // applying 12% VAT on each purchase
-        // Without lambda expressions:
-        List<Integer> costBeforeTax = Arrays.asList(100, 200, 300, 400, 500);
-        for (Integer cost : costBeforeTax) {
-            double price = cost + .12 * cost;
-            System.out.println(price);
-        }
-
-        // With Lambda expression:
-        costBeforeTax.stream().map((cost) -> cost + .12 * cost)
-                .forEach(System.out::println);
-    }
-
-    @Test
-    public void testMapReduce2() {
+    public void testMapReduceOptional() {
         // Applying 12% VAT on each purchase
         // Old way:
         List<Integer> costBeforeTax = Arrays.asList(100, 200, 300, 400, 500);
@@ -141,18 +174,6 @@ public class LamdaTest {
     }
 
     @Test
-    public void testFilter() {
-        List<String> features = Arrays.asList("Lambdas", "Default Method", "Stream API",
-                "Date and Time API", "X");
-
-        // Create a List with String more than 2 characters
-        List<String> filtered = features.stream().filter(x -> x.length() > 2)
-                .collect(Collectors.toList());
-        System.out.printf("Original List : %s, filtered list : %s %n",
-                features, filtered);
-    }
-
-    @Test
     public void testCount() {
         List<String> features = Arrays.asList("Lambdas", "Default Method", "Stream API",
                 "Date and Time API", "X");
@@ -163,12 +184,35 @@ public class LamdaTest {
     }
 
     @Test
-    public void testFilterGroupBy() {
+    public void testSkipAndLimit() {
+        List<String> features = Arrays.asList("Lambdas", "Default Method", "Stream API",
+                "Date and Time API");
+        List<String> res = features.stream().skip(1).limit(2).collect(toList());
+        System.out.println(res);
+    }
+
+    @Test
+    public void testCollectorsAveragingInt() {
+        List<Integer> ids = Arrays.asList(100, 200, 300, 400, 500);
+        double avgLen = ids.stream().collect(averagingInt(id -> id));
+        System.out.println(avgLen);
+    }
+
+    @Test
+    public void testCollectorsMaxBy() {
+        List<String> features = Arrays.asList("Lambdas", "Default Method", "Stream API",
+                "Date and Time API");
+        Function<String, Integer> getMaxLen = str -> str.length();
+        Optional<String> maxLen = features.stream().collect(Collectors.maxBy(Comparator.comparing(getMaxLen)));
+        System.out.println(maxLen.get());
+    }
+
+    @Test
+    public void testCollectorsGroupBy() {
         List<String> features = Arrays.asList("Lambdas", "Default Method", "Stream API",
                 "Date and Time API", "X", "Lambdas", "Stream API");
 
-        // Create a List with String more than 2 characters
-        Map<String, Integer> map = features.stream().filter(x -> x.length() > 2)
+        Map<String, Integer> map = features.stream()
                 .collect(Collectors.groupingBy(p -> p, Collectors.summingInt(p -> 1)));
         System.out.println(map);
     }
@@ -229,7 +273,7 @@ public class LamdaTest {
     }
 
     @Test
-    public void testFindLongTracks() {
+    public void testFlatMapFindLongTracks() {
         Set<String> longTrackNames = getAlbums().stream()
                 .flatMap(album -> album.getTracks().stream())
                 .filter(track -> track.getLength() > 60)
@@ -240,16 +284,16 @@ public class LamdaTest {
     }
 
     @Test
-    public void testFindLongestTracks() {
+    public void testFlatMapFindLongestTracks() {
         Track longestTrack = getAlbums().stream()
                 .flatMap(album -> album.getTracks().stream())
-                .max(Comparator.comparing(track -> track.getLength()))
+                .max(comparing(track -> track.getLength()))
                 .get();
         System.out.println(longestTrack);
     }
 
     @Test
-    public void testGenerateRandome() {
+    public void testGenerateRandom() {
         Stream.generate(Math::random).limit(5).forEach(System.out::println);
     }
 
