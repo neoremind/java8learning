@@ -2,11 +2,11 @@ package net.neoremind.java8learning;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.averagingInt;
-import static java.util.stream.Collectors.maxBy;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static net.neoremind.java8learning.AlbumBuilder.getAlbums;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.IntSummaryStatistics;
@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -28,6 +29,8 @@ import net.neoremind.java8learning.bo.Track;
  * Java8 lambda simple tests
  * <p>
  * TODO http://winterbe.com/posts/2014/07/31/java8-stream-tutorial-examples/
+ * <p>
+ * http://yananay.iteye.com/blog/2092524
  *
  * @author zhangxu
  */
@@ -233,6 +236,13 @@ public class LamdaTest {
     }
 
     @Test
+    public void testAllMatch() {
+        List<String> languages = Arrays.asList("Java", "Scala", "C++", "Haskell", "Lisp");
+        boolean allStartsWithJ = languages.stream().anyMatch((s) -> s.startsWith("J"));
+        System.out.println(allStartsWithJ);
+    }
+
+    @Test
     public void testSummaryStatistics() {
         //Get count, min, max, sum, and average for numbers
         List<Integer> primes = Arrays.asList(2, 3, 5, 7, 11, 13, 17, 19, 23, 29);
@@ -309,6 +319,43 @@ public class LamdaTest {
         Stream.iterate(0, x -> x + 1)
                 .limit(5)
                 .forEach(System.out::println);
+    }
+
+    /**
+     * 使用并行流
+     * <p>
+     * 流操作可以是顺序的，也可以是并行的。顺序操作通过单线程执行，而并行操作则通过多线程执行. 可使用并行流进行操作来提高运行效率
+     */
+    @Test
+    public void useParallelStreams() {
+        // 初始化一个字符串集合
+        int max = 1000000;
+        List<String> values = new ArrayList<>();
+
+        for (int i = 0; i < max; i++) {
+            UUID uuid = UUID.randomUUID();
+            values.add(uuid.toString());
+        }
+
+        // 使用顺序流排序
+        long sequenceT0 = System.nanoTime();
+        values.stream().sorted();
+        long sequenceT1 = System.nanoTime();
+
+        // 输出:sequential sort took: 51921 ms.
+        System.out.format("sequential sort took: %d ms.", sequenceT1 - sequenceT0).println();
+
+        // 使用并行流排序
+        long parallelT0 = System.nanoTime();
+        // default Stream<E> parallelStream() {
+        // parallelStream为Collection接口的一个默认方法
+        values.parallelStream().sorted();
+        long parallelT1 = System.nanoTime();
+
+        // 输出:parallel sort took: 21432 ms.
+        System.out.format("parallel sort took: %d ms.", parallelT1 - parallelT0).println();
+
+        // 从输出可以看出：并行排序快了很多
     }
 
 }
