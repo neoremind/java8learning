@@ -220,7 +220,7 @@ public class MapTest {
         //example.forEach();
         example.compute();
         //example.remove();
-        //example.getOrDefault();
+        example.getOrDefault();
         //example.merge();
     }
 }

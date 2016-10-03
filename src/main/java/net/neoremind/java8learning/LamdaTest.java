@@ -2,6 +2,7 @@ package net.neoremind.java8learning;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.averagingInt;
+import static java.util.stream.Collectors.summarizingInt;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static net.neoremind.java8learning.AlbumBuilder.getAlbums;
@@ -153,7 +154,9 @@ public class LamdaTest {
     @Test
     public void testMapReduce() {
         int count = Stream.of(1, 2, 3).reduce(10, (acc, element) -> acc + element);
+        int count2 = Stream.of(1, 2, 3).reduce(10, Integer::sum);
         System.out.println(count);
+        System.out.println(count2);
     }
 
     @Test
@@ -280,6 +283,15 @@ public class LamdaTest {
                 System.out.println(name + " ");
             }
         }
+    }
+
+    @Test
+    public void testMethodReferenceCountAllTrackLength() {
+        long allTrackLength = getAlbums().stream()
+                .flatMap(album -> album.getTracks().stream())
+                .mapToInt(Track::getLength)
+                .sum();
+        System.out.println(allTrackLength);
     }
 
     @Test
