@@ -7,6 +7,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static net.neoremind.java8learning.AlbumBuilder.getAlbums;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -19,9 +20,11 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.junit.Test;
+import org.junit.experimental.theories.suppliers.TestedOn;
 
 import net.neoremind.java8learning.bo.Album;
 import net.neoremind.java8learning.bo.Track;
@@ -159,6 +162,10 @@ public class LamdaTest {
         System.out.println(count2);
     }
 
+    static int sum(int[] numbers) {
+        return IntStream.of(numbers).reduce(0, Integer::sum);
+    }
+
     @Test
     public void testMapReduceOptional() {
         // Applying 12% VAT on each purchase
@@ -221,6 +228,74 @@ public class LamdaTest {
         Map<String, Integer> map = features.stream()
                 .collect(Collectors.groupingBy(p -> p, Collectors.summingInt(p -> 1)));
         System.out.println(map);
+    }
+
+    @Test
+    public void testSimpleGroupBy() {
+        //3 apple, 2 banana, others 1
+        List<String> items = Arrays.asList("apple", "apple", "banana",
+                "apple", "orange", "banana", "papaya");
+
+        Map<String, Long> result = items.stream().collect(
+                Collectors.groupingBy(Function.identity(), Collectors.counting()));
+
+        System.out.println(result);
+    }
+
+    @Test
+    public void testSimpleGroupByListObjects() {
+        //3 apple, 2 banana, others 1
+        List<Item> items = Arrays.asList(
+                new Item("apple", 10, new BigDecimal("9.99")),
+                new Item("banana", 20, new BigDecimal("19.99")),
+                new Item("orang", 10, new BigDecimal("29.99")),
+                new Item("watermelon", 10, new BigDecimal("29.99")),
+                new Item("papaya", 20, new BigDecimal("9.99")),
+                new Item("apple", 10, new BigDecimal("9.99")),
+                new Item("banana", 10, new BigDecimal("19.99")),
+                new Item("apple", 20, new BigDecimal("9.99"))
+        );
+
+        Map<String, Long> counting = items.stream().collect(
+                Collectors.groupingBy(Item::getName, Collectors.counting()));
+
+        System.out.println(counting);
+
+        Map<String, Integer> sum = items.stream().collect(
+                Collectors.groupingBy(Item::getName, Collectors.summingInt(Item::getQty)));
+
+        System.out.println(sum);
+    }
+
+    @Test
+    public void testSimpleGroupByPrices() {
+        //3 apple, 2 banana, others 1
+        List<Item> items = Arrays.asList(
+                new Item("apple", 10, new BigDecimal("9.99")),
+                new Item("banana", 20, new BigDecimal("19.99")),
+                new Item("orang", 10, new BigDecimal("29.99")),
+                new Item("watermelon", 10, new BigDecimal("29.99")),
+                new Item("papaya", 20, new BigDecimal("9.99")),
+                new Item("apple", 10, new BigDecimal("9.99")),
+                new Item("banana", 10, new BigDecimal("19.99")),
+                new Item("apple", 20, new BigDecimal("9.99"))
+        );
+
+        //group by price
+        Map<BigDecimal, List<Item>> groupByPriceMap =
+                items.stream().collect(Collectors.groupingBy(Item::getPrice));
+
+        System.out.println(groupByPriceMap);
+
+        // group by price, uses 'mapping' to convert List<Item> to Set<String>
+        Map<BigDecimal, Set<String>> result =
+                items.stream().collect(
+                        Collectors.groupingBy(Item::getPrice,
+                                Collectors.mapping(Item::getName, Collectors.toSet())
+                        )
+                );
+
+        System.out.println(result);
     }
 
     /**
@@ -310,6 +385,7 @@ public class LamdaTest {
         Track longestTrack = getAlbums().stream()
                 .flatMap(album -> album.getTracks().stream())
                 .max(comparing(track -> track.getLength()))
+                        //.max(Comparator.comparing(track -> track.getLength()))
                 .get();
         System.out.println(longestTrack);
     }
@@ -368,6 +444,52 @@ public class LamdaTest {
         System.out.format("parallel sort took: %d ms.", parallelT1 - parallelT0).println();
 
         // 从输出可以看出：并行排序快了很多
+    }
+
+    public class Item {
+
+        private String name;
+        private int qty;
+        private BigDecimal price;
+
+        public Item(String name, int qty, BigDecimal price) {
+            this.name = name;
+            this.qty = qty;
+            this.price = price;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public int getQty() {
+            return qty;
+        }
+
+        public void setQty(int qty) {
+            this.qty = qty;
+        }
+
+        public BigDecimal getPrice() {
+            return price;
+        }
+
+        public void setPrice(BigDecimal price) {
+            this.price = price;
+        }
+
+        @Override
+        public String toString() {
+            return "Item{" +
+                    "name='" + name + '\'' +
+                    ", qty=" + qty +
+                    ", price=" + price +
+                    '}';
+        }
     }
 
 }
