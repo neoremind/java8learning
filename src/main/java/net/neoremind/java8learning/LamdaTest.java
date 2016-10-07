@@ -2,7 +2,6 @@ package net.neoremind.java8learning;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.averagingInt;
-import static java.util.stream.Collectors.summarizingInt;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static net.neoremind.java8learning.AlbumBuilder.getAlbums;
@@ -24,7 +23,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.junit.Test;
-import org.junit.experimental.theories.suppliers.TestedOn;
 
 import net.neoremind.java8learning.bo.Album;
 import net.neoremind.java8learning.bo.Track;
@@ -384,7 +382,8 @@ public class LamdaTest {
     public void testFlatMapFindLongestTracks() {
         Track longestTrack = getAlbums().stream()
                 .flatMap(album -> album.getTracks().stream())
-                .max(comparing(track -> track.getLength()))
+                //.max(comparing(track -> track.getLength()))
+                .max(comparing(Track::getLength))
                         //.max(Comparator.comparing(track -> track.getLength()))
                 .get();
         System.out.println(longestTrack);
