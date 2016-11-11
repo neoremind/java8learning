@@ -238,6 +238,11 @@ public class LamdaTest {
                 Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
         System.out.println(result);
+
+        Map<Integer, List<String>> result2 = items.stream().collect(
+                Collectors.groupingBy(String::length, Collectors.toList()));
+
+        System.out.println(result2);
     }
 
     @Test
